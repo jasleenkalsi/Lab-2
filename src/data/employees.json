@@ -1,0 +1,25 @@
+{
+  "departments": {
+    "Administration": ["Zoë Robins", "Madeleine Madden"],
+    "Audit": ["Josha Sadowski", "Kate Fleetwood"],
+    "BankingOperations": ["Priyanka Bose", "Hammed Animashaun", "Álvaro Morte", "Taylor Napier", "Alan Simmonds"],
+    "Communications": ["Gil Cardinal", "Richard J. Lewis"],
+    "CorporateServices": ["Randy Bradshaw", "Tracey Cook", "Lubomir Mykytiuk"],
+    "Facilities": ["Dakota House", "Lori Lea Okemah", "Renae Morrisseau", "Rick Belcourt"],
+    "FinancialServices": ["Selina Hanusa", "Buffy Gaudry", "Shaneen Ann Fox", "Allan Little", "Danny Rabbit"],
+    "HumanResources": ["Jesse Ed aure", "Stacy Da Silva", "Vladimír Valenta", "Samone Sayeses-Whitney", "Paul Coeur"],
+    "InformationTechnology": ["Graham Greene", "Sandika Evergreen", "Jennifer Rodriguez"],
+    "ItTechnician": [
+      "Aiyana Littlebear",
+      "Inara Thunderbird",
+      "Kaya Runningbrook",
+      "Elara Firehawk",
+      "Siona Moonflower",
+      "Kaiyu Greywolf",
+      "Ayawamat Nightwind",
+      "Tala Braveheart",
+      "Iniko Stonebear",
+      "Onatah Redhawk"
+    ]
+  }
+}
