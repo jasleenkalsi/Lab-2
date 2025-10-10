@@ -1,46 +1,84 @@
-import { Link } from "react-router";
-type Employee = { id: number; name: string; department: string };
+import { useMemo, useState } from "react";
+import employeesRaw from "../../data/employees.json";
 
-interface MyEmployeesProps {
-  employees: Employee[];
-  setEmployees: React.Dispatch<React.SetStateAction<Employee[]>>;
+interface Employee {
+  id: number;
+  name: string;
+  department: string;
 }
 
-export function MyEmployees({ employees }: MyEmployeesProps) {
-  const NoEmployeesFound = () => {
-    return (
-      <div className="flex flex-col text-xl gap-4">
-        <div>
-          <span>You have no employees saved.</span>
-        </div>
-        <div>
-          <Link to="/employees">
-            <span className="text-sky-600 hover:underline">View all employees</span>
-          </Link>
-        </div>
-      </div>
+interface EmployeeDepartment {
+  department: string;
+  employees: string[];
+}
+
+interface RawEmployeesJson {
+  departments: Record<string, string[]>; 
+}
+
+function normalize(raw: RawEmployeesJson): Employee[] {
+  const result: Employee[] = [];
+  let id = 1;
+  for (const [department, names] of Object.entries(raw.departments)) {
+    for (const name of names) {
+      result.push({ id: id++, name, department });
+    }
+  }
+  return result;
+}
+
+export default function EmployeePage() {
+  const all: Employee[] = useMemo(() => {
+    const raw = employeesRaw as unknown as RawEmployeesJson;
+    return normalize(raw);
+  }, []);
+
+  const [q, setQ] = useState("");
+
+  const filtered = useMemo(() => {
+    const s = q.trim().toLowerCase();
+    if (!s) return all;
+    return all.filter(
+      (e) =>
+        e.name.toLowerCase().includes(s) ||
+        e.department.toLowerCase().includes(s)
     );
-  };
+  }, [q, all]);
+
+  const grouped: EmployeeDepartment[] = useMemo(() => {
+    const map: Record<string, string[]> = {};
+    for (const e of filtered) {
+      if (!map[e.department]) map[e.department] = [];
+      map[e.department].push(e.name);
+    }
+    return Object.keys(map).map((dept) => ({
+      department: dept,
+      employees: map[dept],
+    }));
+  }, [filtered]);
 
   return (
-    <div className="py-8">
-      {employees.length === 0 ? <NoEmployeesFound /> : <></>}
-      <div className="p-16">
-        <EmployeeListSimple employees={employees} />
-      </div>
+    <div>
+      <h1>Employees</h1>
+      <input
+        placeholder="search name"
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+      />
+      {grouped.length === 0 ? (
+        <p>No employees found.</p>
+      ) : (
+        grouped.map((g, i) => (
+          <div key={i}>
+            <h3>{g.department}</h3>
+            <ul>
+              {g.employees.map((name, j) => (
+                <li key={j}>{name}</li>
+              ))}
+            </ul>
+          </div>
+        ))
+      )}
     </div>
-  );
-}
-
-function EmployeeListSimple({ employees }: { employees: Employee[] }) {
-  return (
-    <ul className="flex flex-col gap-2">
-      {employees.map((e) => (
-        <li key={e.id} className="flex items-center justify-between">
-          <span>{e.name}</span>
-          <span className="text-gray-500">{e.department}</span>
-        </li>
-      ))}
-    </ul>
   );
 }
