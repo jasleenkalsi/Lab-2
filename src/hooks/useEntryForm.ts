@@ -1,88 +1,79 @@
-
-import { useState } from "react";
-import { validStaffService, type EmployeeDraft, type RoleDraft } from "../services/validStaffService";
+import { useState } from "react"; import { validStaffService, type EmployeeDraft, type RoleDraft } from "../services/validStaffService";
 
 type Mode = "employee" | "role";
 
 type UseEntryFormOpts = {
   mode: Mode;
   roleTitles?: string[];
-  existingRoles?: Array<{ role: string; department: string; description: string }>; 
-  departments?: string[]; 
+  departments?: string[];
+  existingRoles?: string[]; 
   onCreate: (value: EmployeeDraft | RoleDraft) => void;
 };
 
-export function useEntryForm(opts: UseEntryFormOpts) {
+export function useEntryForm({
+  mode,
+  roleTitles = [],
+  departments = [],
+  existingRoles = [],
+  onCreate,
+}: UseEntryFormOpts) {
   const [errors, setErrors] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
+
   const [employeeDraft, setEmployeeDraft] = useState<EmployeeDraft>({
     firstName: "",
     lastName: "",
-    role: opts.roleTitles?.[0] || "",
+    role: roleTitles[0] || "",
   });
 
   const [roleDraft, setRoleDraft] = useState<RoleDraft>({
     role: "",
-    department: opts.departments?.[0] || "",
+    department: departments[0] || "",
     description: "",
   });
 
-  function setField<K extends keyof EmployeeDraft | keyof RoleDraft>(key: K, value: string) {
-    if (opts.mode === "employee") {
-      setEmployeeDraft(prev => ({ ...prev, [key as keyof EmployeeDraft]: value } as EmployeeDraft));
+  function setField(key: string, value: string) {
+    if (mode === "employee") {
+      setEmployeeDraft((d) => ({ ...d, [key]: value } as EmployeeDraft));
     } else {
-      setRoleDraft(prev => ({ ...prev, [key as keyof RoleDraft]: value } as RoleDraft));
+      setRoleDraft((d) => ({ ...d, [key]: value } as RoleDraft));
     }
   }
 
   function reset() {
     setErrors([]);
     setSubmitting(false);
-    setEmployeeDraft({
-      firstName: "",
-      lastName: "",
-      role: opts.roleTitles?.[0] || "",
-    });
-    setRoleDraft({
-      role: "",
-      department: opts.departments?.[0] || "",
-      description: "",
-    });
+    setEmployeeDraft({ firstName: "", lastName: "", role: roleTitles[0] || "" });
+    setRoleDraft({ role: "", department: departments[0] || "", description: "" });
   }
 
-  async function submit(e?: React.FormEvent) {
-    if (e) e.preventDefault();
+  async function submit(e?: { preventDefault?: () => void }) {
+    e?.preventDefault?.();
     setSubmitting(true);
 
-    if (opts.mode === "employee") {
-      const res = validStaffService.validateEmployee(employeeDraft, {
-        roleTitles: opts.roleTitles || [],
-      });
+    if (mode === "employee") {
+      const res = validStaffService.validateEmployee(employeeDraft, { roleTitles });
       if (!res.valid) {
         setErrors(res.errors);
         setSubmitting(false);
         return;
       }
-      opts.onCreate(employeeDraft);
+      onCreate(employeeDraft);
       reset();
-      return;
+    } else {
+      const res = validStaffService.validateRole(roleDraft, { existingRoles, departments });
+      if (!res.valid) {
+        setErrors(res.errors);
+        setSubmitting(false);
+        return;
+      }
+      onCreate(roleDraft);
+      reset();
     }
-
-    const res = validStaffService.validateRole(roleDraft, {
-      existingRoles: opts.existingRoles || [],
-      departments: opts.departments || [],
-    });
-    if (!res.valid) {
-      setErrors(res.errors);
-      setSubmitting(false);
-      return;
-    }
-    opts.onCreate(roleDraft);
-    reset();
   }
 
   return {
-    mode: opts.mode,
+    mode,
     employeeDraft,
     roleDraft,
     errors,
