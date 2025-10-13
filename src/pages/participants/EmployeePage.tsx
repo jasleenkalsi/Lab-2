@@ -1,84 +1,112 @@
-import { useMemo, useState } from "react";
-import employeesRaw from "../../data/employees.json";
+import React, { useState } from "react";
+import * as employeesData from "../../data/employees.json";
+import * as orgData from "../../data/organization.json";
 
-interface Employee {
-  id: number;
-  name: string;
-  department: string;
-}
+type RoleItem = {
+   role: string;
+  department: string; 
+  description: string };
 
-interface EmployeeDepartment {
-  department: string;
-  employees: string[];
-}
+type Org = {
+  departments: string[];
+  roles: RoleItem[];
+};
 
-interface RawEmployeesJson {
-  departments: Record<string, string[]>; 
-}
+type Employee = {
+  firstName: string;
+  lastName: string;
+  role: string;
+};
 
-function normalize(raw: RawEmployeesJson): Employee[] {
-  const result: Employee[] = [];
-  let id = 1;
-  for (const [department, names] of Object.entries(raw.departments)) {
-    for (const name of names) {
-      result.push({ id: id++, name, department });
-    }
-  }
-  return result;
-}
 
 export default function EmployeePage() {
-  const all: Employee[] = useMemo(() => {
-    const raw = employeesRaw as unknown as RawEmployeesJson;
-    return normalize(raw);
-  }, []);
+  const org = orgData as unknown as Org;
+  const roleOptions: string[] = org.roles.map((r) => r.role);
+  const raw = employeesData as any;
+  const initialEmployees: Employee[] = Array.isArray(raw)
+    ? (raw as Employee[])
+    : (raw?.employees ?? []);
 
-  const [q, setQ] = useState("");
+  const [employees, setEmployees] = useState<Employee[]>(initialEmployees);
+  const [search, setSearch] = useState("");
 
-  const filtered = useMemo(() => {
-    const s = q.trim().toLowerCase();
-    if (!s) return all;
-    return all.filter(
-      (e) =>
-        e.name.toLowerCase().includes(s) ||
-        e.department.toLowerCase().includes(s)
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [role, setRole] = useState(roleOptions[0] || "");
+  const [error, setError] = useState("");
+
+  const visible = employees.filter((e) => {
+    const q = search.toLowerCase().trim();
+    if (!q) return true;
+    return (
+      e.firstName.toLowerCase().includes(q) ||
+      e.lastName.toLowerCase().includes(q) ||
+      e.role.toLowerCase().includes(q)
     );
-  }, [q, all]);
+  });
 
-  const grouped: EmployeeDepartment[] = useMemo(() => {
-    const map: Record<string, string[]> = {};
-    for (const e of filtered) {
-      if (!map[e.department]) map[e.department] = [];
-      map[e.department].push(e.name);
-    }
-    return Object.keys(map).map((dept) => ({
-      department: dept,
-      employees: map[dept],
-    }));
-  }, [filtered]);
+  function onAdd(e: React.FormEvent) {
+    e.preventDefault();
+
+    const f = firstName.trim();
+    const l = lastName.trim();
+    const r = role.trim();
+
+    if (f.length < 3) { setError("First name must be at least 3 characters."); return; }
+    if (l.length < 3) { setError("Last name must be at least 3 characters."); return; }
+    if (!roleOptions.includes(r)) { setError("Please select a valid role."); return; }
+
+    setEmployees([...employees, { firstName: f, lastName: l, role: r }]);
+    setFirstName("");
+    setLastName("");
+    setRole(roleOptions[0] || "");
+    setError("");
+  }
 
   return (
     <div>
       <h1>Employees</h1>
+
       <input
-        placeholder="search name"
-        value={q}
-        onChange={(e) => setQ(e.target.value)}
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        placeholder="Search by name or role"
       />
-      {grouped.length === 0 ? (
-        <p>No employees found.</p>
-      ) : (
-        grouped.map((g, i) => (
-          <div key={i}>
-            <h3>{g.department}</h3>
-            <ul>
-              {g.employees.map((name, j) => (
-                <li key={j}>{name}</li>
-              ))}
-            </ul>
-          </div>
-        ))
-      )}
+
+      <form onSubmit={onAdd}>
+        <div>
+          <label>First Name</label>
+          <input value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+        </div>
+
+        <div>
+          <label>Last Name</label>
+          <input value={lastName} onChange={(e) => setLastName(e.target.value)} />
+        </div>
+
+        <div>
+          <label>Role</label>
+          <select value={role} onChange={(e) => setRole(e.target.value)}>
+            {roleOptions.map((r) => (
+              <option key={r} value={r}>{r}</option>
+            ))}
+          </select>
+        </div>
+
+        {error && <div>{error}</div>}
+
+        <button type="submit">Add Employee</button>
+      </form>
+
+      <h2>List</h2>
+      <ul>
+        {visible.map((e, i) => (
+          <li key={i}>
+            <div>{e.firstName} {e.lastName}</div>
+            <div>{e.role}</div>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
