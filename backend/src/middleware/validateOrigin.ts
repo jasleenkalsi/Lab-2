@@ -9,7 +9,7 @@ export default function validateOrigin(req: Request, res: Response, next: NextFu
   const origin = req.headers.origin;
   if (origin && allowedOrigins.length && !allowedOrigins.includes(origin)) {
     res.status(403).json({ message: "Unauthorized origin" });
-    return; // stop execution
+    return; 
   }
-  next(); // ✅ don't return Response
+  next(); 
 }

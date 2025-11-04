@@ -3,7 +3,7 @@ import { getAllRoles, getRoleById } from "../services/roleService.js";
 
 export async function getAll(req: Request, res: Response): Promise<void> {
   const roles = await getAllRoles();
-  res.json(roles); // ✅ don't return res.json()
+  res.json(roles); 
 }
 
 export async function getById(req: Request, res: Response): Promise<void> {
@@ -19,5 +19,5 @@ export async function getById(req: Request, res: Response): Promise<void> {
     return;
   }
 
-  res.json(role); // ✅ send the data but don’t return the Response object
+  res.json(role); 
 }

@@ -5,7 +5,7 @@ export default function validateApiKey(req: Request, res: Response, next: NextFu
   const key = req.headers["x-api-key"];
 
   if (ua.includes("postman") || key === process.env.API_KEY) {
-    next(); // ✅ continue to next middleware
+    next();
   } else {
     res.status(401).json({ message: "Unauthorized client" });
   }

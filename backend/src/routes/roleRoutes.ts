@@ -6,4 +6,4 @@ const router = Router();
 router.get("/", getAll as RequestHandler);
 router.get("/:id", getById as RequestHandler);
 
-export default router; // ✅ Default export
+export default router; 

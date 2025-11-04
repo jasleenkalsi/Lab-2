@@ -25,5 +25,5 @@ app.use("/api/employees", employeeRoutes);
 app.use("/api/roles", roleRoutes);
 
 app.listen(PORT, () => {
-  console.log(`✅ Server running on http://localhost:${PORT}`);
+  console.log(` Server running on http://localhost:${PORT}`);
 });
